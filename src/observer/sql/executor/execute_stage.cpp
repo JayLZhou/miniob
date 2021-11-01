@@ -644,8 +644,9 @@ RC cross_join(std::vector<TupleSet> &tuple_sets, const Selects &selects,
         const RelAttr &attr = selects.attributes[i];
         if (attr.relation_name == nullptr) {
             if (strcmp("*", attr.attribute_name) == 0) {
-                for (auto& tuple_set1 : tuple_sets) {
-                    output_scheam.append(tuple_set1.get_schema());
+                int size = tuple_sets.size();
+                for (int i = size - 1; i >= 0; i--) {
+                    output_scheam.append(tuple_sets[i].get_schema());
                 }
             } else {
                 return RC::SCHEMA_TABLE_NOT_EXIST;
@@ -676,7 +677,7 @@ RC cross_join(std::vector<TupleSet> &tuple_sets, const Selects &selects,
 
     tuple_set.set_schema(output_scheam);
     std::unordered_map<std::string, const Tuple*> tuples_map;
-    return do_cross_join(tuple_sets, 0, conditions, tuple_set, tuples_map, schemas_map);
+    return do_cross_join(tuple_sets, tuple_sets.size() - 1, conditions, tuple_set, tuples_map, schemas_map);
 }
 
 RC do_cross_join(std::vector<TupleSet> &tuple_sets, int index, 
@@ -685,9 +686,7 @@ RC do_cross_join(std::vector<TupleSet> &tuple_sets, int index,
                     std::unordered_map<std::string, const Tuple*> &tuples_map,
                     std::unordered_map<std::string, const TupleSchema*> &schemas_map) {
 
-    int size = tuple_sets.size();
-
-    if (index == size) {
+    if (index == -1) {
         for (auto &condition: conditions) {
             std::string left_table(condition->left_attr.relation_name);
             char *left_attr = condition->left_attr.attribute_name;
@@ -728,9 +727,10 @@ RC do_cross_join(std::vector<TupleSet> &tuple_sets, int index,
     const std::vector<TupleField> &fields = tuple_set1.get_schema().fields();
     std::string table_name(fields[0].table_name());
 
-    for (int i = 0; i < tuples.size(); i++) {
+    int size = tuples.size();
+    for (int i = 0; i < size; i++) {
         tuples_map[table_name] = &tuples[i];
-        RC rc = do_cross_join(tuple_sets, index + 1, conditions, tuple_set, tuples_map, schemas_map);
+        RC rc = do_cross_join(tuple_sets, index - 1, conditions, tuple_set, tuples_map, schemas_map);
         if (rc != RC::SUCCESS) {
             return rc;
         }
