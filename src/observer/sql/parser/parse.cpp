@@ -16,6 +16,9 @@ See the Mulan PSL v2 for more details. */
 #include "sql/parser/parse.h"
 #include "rc.h"
 #include "common/log/log.h"
+#include<string.h>
+#include<stdio.h>
+#include<cstring>
 
 RC parse(char *st, Query *sqln);
 
@@ -51,11 +54,15 @@ void parse_attr(char *tmp, AggreType aggre_type) {
 }
 
 void relation_attr_init(RelAttr *relation_attr, const char *relation_name, const char *attribute_name, int isaggre, int aggre_type) {
+
     if (relation_name != nullptr) {
         relation_attr->relation_name = strdup(relation_name);
     } else {
         relation_attr->relation_name = nullptr;
     }
+
+    relation_attr->attribute_name = strdup(attribute_name);
+    relation_attr->aggre_type = NON;
     if(isaggre == 1){
         if(aggre_type == 0){
             relation_attr->aggre_type = COUNT;
@@ -82,7 +89,21 @@ void relation_attr_destroy(RelAttr *relation_attr) {
     relation_attr->attribute_name = nullptr;
 }
 
-void value_init_integer(Value *value, int v) {
+void value_init_integer(Value *value, const char* v) {
+    int int_v = atoi(v);
+    value->type = INTS;
+    value->data = malloc(sizeof(int_v));
+    memcpy(value->data, &int_v, sizeof(int_v));
+}
+
+void value_init_float(Value *value, const char *v ) {
+    float float_v = (float)(atof(v));
+    value->type = FLOATS;
+    value->data = malloc(sizeof(float_v));
+    memcpy(value->data, &float_v, sizeof(float_v));
+}
+
+void value_init_integer_int(Value *value, int v) {
     value->type = INTS;
     value->data = malloc(sizeof(v));
     memcpy(value->data, &v, sizeof(v));
@@ -122,6 +143,12 @@ void value_destroy(Value *value) {
     value->type = UNDEFINED;
     free(value->data);
     value->data = nullptr;
+}
+
+void orderby_init_append(Selects *select, int asc_desc, RelAttr *attr, Orderby *orderby){
+    orderby->attr = attr;
+    orderby->asc_desc = asc_desc;
+    select->orderbys[select->nOrderbys++] = orderby;
 }
 
 void condition_init(Condition *condition, CompOp comp,
@@ -461,6 +488,8 @@ RC parse(const char *st, Query *sqln) {
 
     if (sqln->flag == SCF_ERROR)
         return SQL_SYNTAX;
+    if (sqln->flag == SCF_FAILURE)
+        return SQL_FAILURE;
     else
         return SUCCESS;
 }

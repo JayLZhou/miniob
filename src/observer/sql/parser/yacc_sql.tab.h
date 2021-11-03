@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.7.2.  */
+/* A Bison parser, made by GNU Bison 3.7.5.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -106,13 +106,13 @@ extern int yydebug;
     NULLABLE = 307,                /* NULLABLE  */
     IS = 308,                      /* IS  */
     ISNOT = 309,                   /* ISNOT  */
-    NUMBER = 310,                  /* NUMBER  */
-    FLOAT = 311,                   /* FLOAT  */
-    ID = 312,                      /* ID  */
-    TOCOUNT = 313,                 /* TOCOUNT  */
-    TOMAX = 314,                   /* TOMAX  */
-    TOMIN = 315,                   /* TOMIN  */
-    TOAVG = 316,                   /* TOAVG  */
+    GROUP = 310,                   /* GROUP  */
+    BY = 311,                      /* BY  */
+    ASC = 312,                     /* ASC  */
+    ORDER = 313,                   /* ORDER  */
+    NUMBER = 314,                  /* NUMBER  */
+    FLOAT = 315,                   /* FLOAT  */
+    ID = 316,                      /* ID  */
     PATH = 317,                    /* PATH  */
     SSS = 318,                     /* SSS  */
     STAR = 319,                    /* STAR  */
@@ -126,7 +126,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 120 "yacc_sql.y"
+#line 127 "yacc_sql.y"
 
   struct _Attr *attr;
   struct _Condition *condition1;
