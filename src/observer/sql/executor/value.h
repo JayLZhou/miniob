@@ -142,6 +142,7 @@ public:
 private:
   std::string value_;
 };
+
 class DateValue : public TupleValue {
 public:
     explicit DateValue(int value) : value_(value) {
@@ -161,6 +162,10 @@ public:
             day_str = "0" + day_str;
         std::string date = year_str + "-" + month_str + "-" + day_str;
         os << date;
+    }
+
+    bool is_null() const override {
+        return false;
     }
 
     int compare(const TupleValue &other) const override {
