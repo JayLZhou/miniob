@@ -24,10 +24,6 @@ Tuple::Tuple(const Tuple &other) {
 Tuple::Tuple(Tuple &&other) noexcept: values_(std::move(other.values_)) {
 }
 
-Tuple::Tuple(const int size) : values_(size) {
-}
-
-
 Tuple &Tuple::operator=(Tuple &&other) noexcept {
     if (&other == this) {
         return *this;
@@ -97,6 +93,7 @@ void TupleSchema::add_if_not_exists(AttrType type, const char *table_name, const
             0 == strcmp(field.field_name(), field_name)) {
             return;
         }
+
     }
     add(type, table_name, field_name);
 }
