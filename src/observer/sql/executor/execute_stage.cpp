@@ -233,12 +233,9 @@ void end_trx_if_need(Session *session, Trx *trx, bool all_right) {
 }
 
 bool isLeapYear_(int year){
-    if ((year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0))
-    {
-        return true;
-    }
-    return false;
+    return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
 }
+
 bool is_date(int year, int mon, int day) {
     int Maxdays[13] = { 0,31,28,31,30,31,30,31,31,30,31,30,31 };
     if (mon < 1 || mon > 12) // 无效月
@@ -269,7 +266,6 @@ bool is_valid_date(int date) {
 // 这里没有对输入的某些信息做合法性校验，比如查询的列名、where条件中的列名等，没有做必要的合法性校验
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
 RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_event) {
-    std::stringstream ss;
     RC rc = RC::SUCCESS;
     Session *session = session_event->get_client()->session;
     Trx *trx = session->current_trx();
@@ -287,6 +283,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
             LOG_WARN("No such table [%s] in db [%s]", table_name, db);
             snprintf(response, sizeof(response), "FAILURE\n");
             session_event->set_response(response);
+            end_trx_if_need(session, trx, false);
             return RC::SCHEMA_TABLE_NOT_EXIST;
         }
         std::string table_name1(table_name);
@@ -309,13 +306,13 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
         }
     }
     if(rc != RC::SUCCESS) {
-        ss<<(rc == RC::SUCCESS ? " " : "FAILURE")<<"\n";
-        session_event->set_response(ss.str());
+        snprintf(response, sizeof(response), "FAILURE\n");
+        session_event->set_response(response);
+        end_trx_if_need(session, trx, false);
         return rc;
     }
     // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
     std::vector<SelectExeNode *> select_nodes;
-    char response[256];
     for (size_t i = 0; i < selects.relation_num; i++) {
         std::string table_name(selects.relations[i]);
         SelectExeNode *select_node = new SelectExeNode;
@@ -634,7 +631,6 @@ RC do_cross_join(std::vector<TupleSet> &tuple_sets, int index,
     const TupleSet &tuple_set1 = tuple_sets[index];
     const std::vector<Tuple> &tuples = tuple_set1.tuples();
     const std::vector<TupleField> &fields = tuple_set1.get_schema().fields();
-    const std::vector<Tuple> &tuples = tuple_set1.tuples();
 
     std::string table_name(fields[0].table_name());
 

@@ -136,28 +136,25 @@ void DefaultStorageStage::cleanup() {
 }
 
 bool isLeapYear(int year) {
-    if ((year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0)) {
-        return true;
-    }
-    return false;
+    return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
 }
 
 bool isDate(int year, int mon, int day) {
     int Maxdays[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    if (mon < 1 || mon > 12) // 无效月
-    {
+    // 无效月
+    if (mon < 1 || mon > 12) {
         return false;
     }
-    if (year < 1970) // 无效年（年的有效性不好界定，就认为小于0为无效）
-    {
+    // 无效年（年的有效性不好界定，就认为小于0为无效）
+    if (year < 1970) {
         return false;
     }
-    if (mon == 2 && day == 29 && isLeapYear(year))  //闰年2月29日
-    {
+    //闰年2月29日
+    if (mon == 2 && day == 29 && isLeapYear(year)) {
         return true;
     }
-    if (day < 1 || day > Maxdays[mon])// 无效日
-    {
+    // 无效日
+    if (day < 1 || day > Maxdays[mon]) {
         return false;
     }
     return true; //日期有效，返回真
@@ -199,7 +196,8 @@ void DefaultStorageStage::handle_event(StageEvent *event) {
         case SCF_INSERT: { // insert into
             const Inserts &inserts = sql->sstr.insertion;
             const char *table_name = inserts.relation_name;
-            for (int i = 0; i < inserts.value_num; i++) {
+            int value_num = inserts.value_num;
+            for (int i = 0; i < value_num; i++) {
                 if (inserts.values[i].type == DATES && !isValidDate(*((int *) inserts.values[i].data)))
                     rc = RC::SCHEMA_FIELD_TYPE_MISMATCH;
             }
@@ -216,7 +214,8 @@ void DefaultStorageStage::handle_event(StageEvent *event) {
             int updated_count = 0;
             if (updates.value.type == DATES && !isValidDate(*((int *) updates.value.data)))
                 rc = RC::SCHEMA_FIELD_TYPE_MISMATCH;
-            for (int i = 0; i < updates.condition_num; i++) {
+            int condition_num = updates.condition_num;
+            for (int i = 0; i < condition_num; i++) {
                 if (!updates.conditions[i].left_is_attr &&
                     updates.conditions[i].left_value.type == DATES &&
                     !isValidDate(*((int *) updates.conditions[i].left_value.data))) {
@@ -241,7 +240,8 @@ void DefaultStorageStage::handle_event(StageEvent *event) {
             const Deletes &deletes = sql->sstr.deletion;
             const char *table_name = deletes.relation_name;
             int deleted_count = 0;
-            for (int i = 0; i < deletes.condition_num; i++) {
+            int condition_num = deletes.condition_num;
+            for (int i = 0; i < condition_num; i++) {
                 if (!deletes.conditions[i].left_is_attr &&
                     deletes.conditions[i].left_value.type == DATES &&
                     !isValidDate(*((int *) deletes.conditions[i].left_value.data))) {

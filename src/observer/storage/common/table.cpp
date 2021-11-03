@@ -359,21 +359,6 @@ RC Table::make_record(int value_num, const Value *values, char *&record_out) {
                       field->name(), field->type(), value.type);
             return RC::SCHEMA_FIELD_TYPE_MISMATCH;
         }
-        std::string data = static_cast<char *>(value.data);
-        // std::transform(data.begin(), data.end(), ::tolower);
-        if(data=="!null"){  // attend to insert null
-            if(!fields_nullable[i]){      // but field is not nullable
-                return RC::CONSTRAINT_NOTNULL;
-            }
-        }
-        if (field->type() == AttrType::DATES && NULLS !=value.type) {
-            // 处理对于日期字段的正确性判断
-            if (value.data) {
-                if (!isValidDate(static_cast<char *>(value.data))) {
-                    return RC::GENERIC_ERROR;
-                }
-            }
-        }
     }
 
     // 复制所有字段的值
@@ -660,7 +645,7 @@ RC Table::update_record(Trx *trx, const char *attribute_name, const Value *value
     }
 
     if (value_num <= 0 || nullptr == value ||
-        table_meta_.field(attr_index + normal_field_start_index)->type() != value->type && NULLS != value->type) {
+        (table_meta_.field(attr_index + normal_field_start_index)->type() != value->type && NULLS != value->type)) {
         LOG_ERROR("Invalid argument. value num=%d, value=%p", value_num, value);
         return RC::INVALID_ARGUMENT;
     }

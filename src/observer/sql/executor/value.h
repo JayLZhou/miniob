@@ -150,6 +150,10 @@ public:
     explicit DateValue(int value) : value_(value) {
     }
 
+    bool is_null() const override {
+        return false;
+    }
+
     void to_string(std::ostream &os) const override {
         // os << value_;
         int year = value_ / 10000;
