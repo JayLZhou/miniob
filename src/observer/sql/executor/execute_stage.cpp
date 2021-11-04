@@ -232,6 +232,7 @@ void end_trx_if_need(Session *session, Trx *trx, bool all_right) {
     }
 }
 
+
 bool isLeapYear_(int year){
     return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
 }
@@ -257,6 +258,7 @@ bool is_date(int year, int mon, int day) {
     return true; //日期有效，返回真
 }
 
+
 bool is_valid_date(int date) {
     int year = date / 10000;
     int month = (date - year * 10000) / 100;
@@ -272,7 +274,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     const Selects &selects = sql->sstr.selection;
 
     char response[256];
-
     //把 tables_map 放到 ExecuteStage 里面是不是更好一点，起到缓存作用
     std::unordered_map<std::string, Table*> tables_map;
     int relation_num = selects.relation_num;
@@ -313,11 +314,11 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     }
     // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
     std::vector<SelectExeNode *> select_nodes;
+
     for (size_t i = 0; i < selects.relation_num; i++) {
         std::string table_name(selects.relations[i]);
         SelectExeNode *select_node = new SelectExeNode;
         rc = create_selection_executor(trx, selects, tables_map[table_name], selects.relations[i], *select_node);
-
         if (rc != RC::SUCCESS) {
             snprintf(response, sizeof(response), "FAILURE\n");
             session_event->set_response(response);
@@ -395,7 +396,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
         end_trx_if_need(session, trx, false);
         return rc;
     }
-
     std::stringstream ss;
     tuple_set1.print(ss, select_nodes.size() != 1);
     for (SelectExeNode *&tmp_node: select_nodes) {
@@ -491,7 +491,6 @@ static RC schema_add_field(Table *table, const char *field_name, TupleSchema &sc
 }
 
 // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
-
 RC create_selection_executor(Trx *trx, const Selects &selects, Table *table,
                 const char *table_name, SelectExeNode &select_node) {
     // 列出跟这张表关联的Attr
@@ -500,20 +499,17 @@ RC create_selection_executor(Trx *trx, const Selects &selects, Table *table,
         // select t1.age from t1, t2 where t1.id = t2.id;
         // 就目前来说，如果查询包括多张表，那需要把每张的表的相关字段(t1.age, t1.id, t2.id)都列出来, 
         // 方便笛卡尔积做过滤。现在是把所有字段都列了出来，这个地方后面可能需要优化。
-
         TupleSchema::from_table(table, schema);
     } else {
         for (int i = selects.attr_num - 1; i >= 0; i--) {
             const RelAttr &attr = selects.attributes[i];
             if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name)) {
-
                 /*
                 char parsed[100];
                 parse_attr(attr.attribute_name, attr.aggre_type, parsed); // if not aggre, will do nothing and return
                 */
                 if (0 == strcmp("*", attr.attribute_name) || 
                         (attr.aggre_type != NON && is_valid_aggre(attr.attribute_name, attr.aggre_type))) {
-
                     // 列出这张表所有字段
                     TupleSchema::from_table(table, schema);
                     break; // 没有校验，给出* 之后，再写字段的错误
@@ -581,7 +577,6 @@ RC cross_join(std::vector<TupleSet> &tuple_sets, const Selects &selects,
         }
     }
     tuple_set.set_schema(scheam);
-
     std::unordered_map<std::string, const Tuple*> tuples_map;
     return do_cross_join(tuple_sets, tuple_sets.size() - 1, conditions, tuple_set, tuples_map, schemas_map);
 }
@@ -629,8 +624,8 @@ RC do_cross_join(std::vector<TupleSet> &tuple_sets, int index,
     }
 
     const TupleSet &tuple_set1 = tuple_sets[index];
-    const std::vector<Tuple> &tuples = tuple_set1.tuples();
     const std::vector<TupleField> &fields = tuple_set1.get_schema().fields();
+    const std::vector<Tuple> &tuples = tuple_set1.tuples();
 
     std::string table_name(fields[0].table_name());
 
